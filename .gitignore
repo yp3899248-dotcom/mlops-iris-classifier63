@@ -9,3 +9,9 @@ __pycache__/
 *.pt
 data/*.csv
 data/*.parquet
+.venv-mlflow/
+mlruns/
+mlflow.db
+mlartifacts/
+confusion_matrix_*.csv
+confusion_matrix_*.png
