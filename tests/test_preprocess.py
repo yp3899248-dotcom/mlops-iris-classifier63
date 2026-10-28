@@ -90,3 +90,47 @@ def test_preprocess_handles_empty_dataframe(tmp_path):
     assert isinstance(result, pd.DataFrame)
     assert result.empty
     assert output_path.exists()
+def test_preprocess_cli_runs_successfully(tmp_path, monkeypatch):
+    import runpy
+    import sys
+    from pathlib import Path
+
+    input_file = tmp_path / "input.csv"
+    output_file = tmp_path / "output.csv"
+
+    pd.DataFrame(
+        {
+            "sepal length (cm)": [5.1, 6.0],
+            "sepal width (cm)": [3.5, 2.8],
+            "petal length (cm)": [1.4, 4.5],
+            "petal width (cm)": [0.2, 1.5],
+            "species": ["setosa", "versicolor"],
+        }
+    ).to_csv(input_file, index=False)
+
+    script_path = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "pipeline"
+        / "preprocess.py"
+    )
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            str(script_path),
+            "--input",
+            str(input_file),
+            "--output",
+            str(output_file),
+        ],
+    )
+
+    runpy.run_path(str(script_path), run_name="__main__")
+
+    assert output_file.exists()
+
+    result = pd.read_csv(output_file)
+    assert len(result) == 2
+    assert "species" in result.columns

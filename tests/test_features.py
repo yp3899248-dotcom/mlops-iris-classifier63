@@ -108,3 +108,48 @@ def test_engineer_features_saves_output_csv(tmp_path):
 
     assert "sepal_area" in saved_result.columns
     assert "petal_area" in saved_result.columns
+
+def test_features_cli_runs_successfully(tmp_path, monkeypatch):
+    import runpy
+    import sys
+    from pathlib import Path
+
+    input_file = tmp_path / "input.csv"
+    output_file = tmp_path / "output.csv"
+
+    pd.DataFrame(
+        {
+            "sepal length (cm)": [5.1, 6.0],
+            "sepal width (cm)": [3.5, 2.8],
+            "petal length (cm)": [1.4, 4.5],
+            "petal width (cm)": [0.2, 1.5],
+            "species": ["setosa", "versicolor"],
+        }
+    ).to_csv(input_file, index=False)
+
+    script_path = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "pipeline"
+        / "features.py"
+    )
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            str(script_path),
+            "--input",
+            str(input_file),
+            "--output",
+            str(output_file),
+        ],
+    )
+
+    runpy.run_path(str(script_path), run_name="__main__")
+
+    assert output_file.exists()
+
+    result = pd.read_csv(output_file)
+    assert "sepal_area" in result.columns
+    assert "petal_area" in result.columns

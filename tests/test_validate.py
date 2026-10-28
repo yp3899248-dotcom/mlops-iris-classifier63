@@ -64,3 +64,38 @@ def test_validate_rejects_null_values(tmp_path):
 
     with pytest.raises(DataValidationError):
         validate(str(input_path))
+def test_validate_cli_runs_successfully(tmp_path, monkeypatch):
+    import runpy
+    import sys
+    from pathlib import Path
+
+    input_file = tmp_path / "valid_input.csv"
+
+    pd.DataFrame(
+        {
+            "sepal length (cm)": [5.1, 6.0],
+            "sepal width (cm)": [3.5, 2.8],
+            "petal length (cm)": [1.4, 4.5],
+            "petal width (cm)": [0.2, 1.5],
+            "species": ["setosa", "versicolor"],
+            "sepal_area": [17.85, 16.8],
+            "petal_area": [0.28, 6.75],
+            "sepal_to_petal_length_ratio": [3.64, 1.33],
+            "petal_length_bin": ["short", "long"],
+        }
+    ).to_csv(input_file, index=False)
+
+    script_path = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "pipeline"
+        / "validate.py"
+    )
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [str(script_path), "--input", str(input_file)],
+    )
+
+    runpy.run_path(str(script_path), run_name="__main__")
