@@ -1,4 +1,4 @@
-import mlflow
+
 from mlflow.tracking import MlflowClient
 
 EXPERIMENT_NAME = "iris-classification-baseline"
